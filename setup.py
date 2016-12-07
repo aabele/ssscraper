@@ -1,5 +1,12 @@
+# -*- coding:utf8 -*-
+"""
+Package setup script
+"""
+
+from __future__ import unicode_literals
+
 import os
-from setuptools import find_packages, setup
+from setuptools import setup
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
@@ -10,13 +17,13 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 setup(
     name='ssscraper',
     version='0.1',
-    packages=find_packages(),
+    packages=['scraper'],
     include_package_data=True,
     license='BSD License',
     description='A simple python selenium wrapper for ss.lv website',
     long_description=README,
     url='https://www.ss.lv/',
-    author='Aivis Abele',
+    author='Aivis Ābele',
     author_email='aabele@gmail.com',
     classifiers=[
         'Environment :: Web Environment',
