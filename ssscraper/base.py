@@ -38,6 +38,12 @@ class Scraper(object):
             service_args=phantomjs_params)
         self.driver.set_window_size(1024, 768)
 
+    def __del__(self):
+        """
+        Destructor
+        """
+        self.driver.close()
+
     @staticmethod
     def random(length):
         """ Generate random string """
