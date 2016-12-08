@@ -1,0 +1,1 @@
+from ssscraper.base import Scraper

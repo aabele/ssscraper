@@ -8,8 +8,8 @@ import random
 import string
 
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
 
 # Phantom JS config
 phantomjs_config = dict(DesiredCapabilities.PHANTOMJS)
@@ -19,8 +19,17 @@ PHANTOMJS_EXECUTABLE_PATH = 'phantomjs'
 
 
 class Scraper(object):
+    """
+    SS.lv scraper
+    """
 
     base_url = 'https://www.ss.lv'
+
+    post_date_filter = {
+        1: 'Šodien',
+        2: 'Par 2 dienām',
+        5: 'Par 5 dienām'
+    }
 
     def __init__(self):
         self.driver = webdriver.PhantomJS(
@@ -58,18 +67,49 @@ class Scraper(object):
         items = self.driver.find_elements_by_xpath('//table//a[@class="a_category"]')
         return [(i.text, i.get_attribute('href')) for i in items]
 
-    def get_posts(self, subcategory_url):
+    def get_posts(self, subcategory_url, days=None):
         """
         Get list of subcategory posts
 
         :param subcategory_url: top category url
         :type: string
+        :param days: day filter - to filter posts by pub date
+        :type: integer
         :return: [(title, url)], ...]
         :rtype: array
         """
+
+        if days and days not in self.post_date_filter:
+            raise Exception('Please set valid day filter')
+
         self.driver.get(subcategory_url)
-        items = self.driver.find_elements_by_xpath('//table//a[@class="am"]')
-        return [(i.text, i.get_attribute('href')) for i in items]
+
+        if days:
+            days_xpath = "//select[@id='today_cnt_sl']/option[starts-with(text(), '%s')]" % self.post_date_filter.get(days)
+            self.driver.find_element_by_xpath(days_xpath).click()
+
+        data = []
+
+        # Dealing with pagination
+        # 1 vs True - because it's faster in python 2.*
+        while 1:
+
+            items = self.driver.find_elements_by_xpath('//table//a[@class="am"]')
+            data += [(i.text, i.get_attribute('href')) for i in items]
+
+            # Does not find next button at all - not enough items for pagination
+            try:
+                next_button = self.driver.find_element_by_xpath('//a[@class="navi" and @rel="next"]')
+            except NoSuchElementException:
+                break
+
+            if not next_button.get_attribute('href').endswith('/'):
+                next_button.click()
+            else:
+                # Next button links back to the first page
+                break
+
+        return data
 
     def get_post_details(self, post_url):
         """
@@ -129,4 +169,4 @@ if __name__ == '__main__':
     print(scraper.get_categories())
     print(scraper.get_subcategories('https://www.ss.lv/lv/transport/'))
     print(scraper.get_posts('https://www.ss.lv/lv/agriculture/agricultural-machinery/motoblocks/'))
-    print(scraper.get_details('https://www.ss.lv/msg/lv/agriculture/agricultural-machinery/motoblocks/bbbkde.html'))
+    print(scraper.get_post_details('https://www.ss.lv/msg/lv/agriculture/agricultural-machinery/motoblocks/bbbkde.html'))
