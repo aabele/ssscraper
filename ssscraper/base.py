@@ -42,7 +42,7 @@ class Scraper(object):
         """
         Destructor
         """
-        self.driver.close()
+        self.driver.quit()
 
     @staticmethod
     def random(length):
