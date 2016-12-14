@@ -8,7 +8,7 @@ import random
 import string
 
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common import exceptions
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 # Phantom JS config
@@ -37,12 +37,6 @@ class Scraper(object):
             desired_capabilities=phantomjs_config,
             service_args=phantomjs_params)
         self.driver.set_window_size(1024, 768)
-
-    def __del__(self):
-        """
-        Destructor
-        """
-        self.driver.quit()
 
     @staticmethod
     def random(length):
@@ -106,7 +100,7 @@ class Scraper(object):
             # Does not find next button at all - not enough items for pagination
             try:
                 next_button = self.driver.find_element_by_xpath('//a[@class="navi" and @rel="next"]')
-            except NoSuchElementException:
+            except exceptions.NoSuchElementException:
                 break
 
             if not next_button.get_attribute('href').endswith('/'):
@@ -160,7 +154,10 @@ class Scraper(object):
             data['photos'].append(image.get_attribute('src'))
 
         # Fixing bad quality html
-        self.driver.execute_script('document.querySelectorAll("[align=left]")[0].className = "ads_contacts";')
+        try:
+            self.driver.execute_script('document.querySelectorAll("[align=left]")[0].className = "ads_contacts";')
+        except exceptions.WebDriverException:
+            pass
 
         # Contacts
         keys = [k.text for k in self.driver.find_elements_by_xpath('//td[@class="ads_contacts_name"]')]
