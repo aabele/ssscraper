@@ -148,10 +148,16 @@ class Scraper(object):
         data['photos'] = []
         thumbs = self.driver.find_elements_by_class_name('pic_thumbnail')
         for thumb in thumbs:
-            thumb.click()
+            try:
+                thumb.click()
+            except exceptions.WebDriverException:
+                pass
 
             image = self.driver.find_element_by_id('msg_img')
             data['photos'].append(image.get_attribute('src'))
+
+        # Price
+        data['price'] = self.driver.find_element_by_xpath('//td[@class="ads_price"]').text
 
         # Fixing bad quality html
         try:
@@ -172,4 +178,4 @@ if __name__ == '__main__':
     print(scraper.get_categories())
     print(scraper.get_subcategories('https://www.ss.lv/lv/transport/'))
     print(scraper.get_posts('https://www.ss.lv/lv/agriculture/agricultural-machinery/motoblocks/'))
-    print(scraper.get_post_details('https://www.ss.lv/msg/lv/agriculture/agricultural-machinery/motoblocks/bbbkde.html'))
+    print(scraper.get_post_details('https://www.ss.lv/msg/lv/agriculture/agricultural-machinery/motoblocks/bxlcof.html'))
